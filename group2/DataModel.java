@@ -93,7 +93,7 @@ public class DataModel {
 					int i = 0;
 					while (!setBucket){
 						if(value <= buckets[i]){
-							row[pos] = i;
+							row[pos] = Integer.toString(i);
 							setBucket=true;
 						}
 						i++;
