@@ -4,6 +4,7 @@ package group2;
  * @author Scott
  *
  */
+@Deprecated
 public class Attribute{
 	private int id; //attribute sequence in the file
 	private String value; //This is the value that will be used to split on in the tree

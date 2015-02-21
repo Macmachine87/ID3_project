@@ -17,12 +17,12 @@ public class Main {
 		Main main = new Main();
 		DataModel dataModel = new DataModel();
 		dataModel.setAttributeMetaData(AttributeMetaData.readMetaDataFile(args[1]));
-		dataModel.setRows(Row.readFile(args[0], dataModel.getAttributeMetaData())); //My computer 17 seconds to read the 10% data set and the metadata
+		dataModel.chooseColumns();
+		dataModel.setoRows(Row.readFile(args[0], dataModel.getAttributeMetaData())); //My computer 17 seconds to read the 10% data set and the metadata
 		System.out.println(new Date() + " After reading data before bucket");
+		dataModel.generateBuckets();
 		dataModel.bucketData();
 		System.out.println(new Date() + " After bucket Data");
-		
-		
 		
 	}
 	

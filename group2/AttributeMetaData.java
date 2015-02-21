@@ -15,7 +15,10 @@ public class AttributeMetaData{
 	private double nonZeroCount = 0;
 	private double sumValue = 0;
 	private double splitPoint;
-	
+	private double maxValue;
+	private double minValue;
+	private boolean inUse = false; //Is this an active attribute for this tree
+	private double[] buckets;
 	public enum AttributeType{classification, categorical, continuous}
 	
 	public int getId() {
@@ -62,11 +65,23 @@ public class AttributeMetaData{
 	public void setSumValue(double sumValue) {
 		this.sumValue = sumValue;
 	}
+	public boolean isInUse() {
+		return inUse;
+	}
+	public void setInUse(boolean inUse) {
+		this.inUse = inUse;
+	}
 	public String toString(){
 		String string = "META:" + getName() + " " + getId() + " " + getType();
 		if(type.equals(AttributeType.continuous)){
 			string += " total " + sumValue + " nonZeroCount " + nonZeroCount + " split " + splitPoint;
-		}			
+		}
+		if(isInUse()){
+			string += " in use ";
+		}
+		else{
+			string += " not in use ";
+		}
 		return string;
 	}
 	public static Map<Integer, AttributeMetaData> readMetaDataFile(String fileName){
@@ -118,6 +133,24 @@ public class AttributeMetaData{
 		}
 		
 		return data;
+	}
+	public double getMaxValue() {
+		return maxValue;
+	}
+	public void setMaxValue(double maxValue) {
+		this.maxValue = maxValue;
+	}
+	public double getMinValue() {
+		return minValue;
+	}
+	public void setMinValue(double minValue) {
+		this.minValue = minValue;
+	}
+	public double[] getBuckets() {
+		return buckets;
+	}
+	public void setBuckets(double[] buckets) {
+		this.buckets = buckets;
 	}
 
 }
