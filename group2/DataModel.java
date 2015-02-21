@@ -18,6 +18,7 @@ import java.util.Random;
 public class DataModel {
 	private List<Row> rows;
 	private List<Object[]> oRows;
+	private List<Object[]> testData;
 	private Map<Integer,AttributeMetaData> attributeMetaData;
 	public List<Row> getRows() {
 		return rows;
@@ -143,6 +144,12 @@ public class DataModel {
 		final int randomNum = rand.nextInt((max - min) + 1) + min;
 
 		return randomNum;
+	}
+	public List<Object[]> getTestData() {
+		return testData;
+	}
+	public void setTestData(List<Object[]> testData) {
+		this.testData = testData;
 	}
 	
 }

@@ -3,16 +3,17 @@ package group2;
 import group2.AttributeMetaData.AttributeType;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 /**
  * Represents a row of data from the source file
  * @author Scott
@@ -82,24 +83,91 @@ public class Row{
 		//newRow.setArrayAttributes(attributes);
 		return attributes;
 	}
-	public static List<Object[]> readFile(String fileName, Map<Integer,AttributeMetaData> attributeMetaData){
+	
+	/**
+	 * Read in the dat file, split it into the training set and the test set. 1/3 for testing 2/3 for training
+	 * Write the training set back to disk to fetch later in the testing phase
+	 * @param fileName
+	 * @param attributeMetaData
+	 * @param sequence
+	 * @return
+	 */
+	public static List<Object[]> readFile(String fileName, Map<Integer,AttributeMetaData> attributeMetaData, int sequence){
 		BufferedReader reader = null;
+		BufferedWriter writer = null;
 		//List<Row> data = new ArrayList<Row>();
 		List<Object[]> data = new ArrayList<Object[]>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)),20000);
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName+"_testData_" + sequence)));
 			String line = "";
 			double counter = 0;
 			double counter2 = 0;
 			while ((line = reader.readLine()) != null){
 				if(line != null && line.length() > 0){
-					data.add(Row.readRow(line, attributeMetaData));
-					counter ++;
+					int rand = DataModel.randInt(1, 3);
+					if(rand == 3){
+						counter2++;
+						//write to file, not going to use
+						writer.write(line);
+						writer.newLine();
+					}
+					else{
+						data.add(Row.readRow(line, attributeMetaData));
+						counter ++;
+					}
 				}
 				else{
-					counter2++;
+					
 				}
 
+		        if(counter%100000 == 0){
+		        	System.out.println("read " + counter + " lines" + new Date());
+		        }
+			}
+			System.out.println("Count in readFile = " + counter + " counter2 = " + counter2);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			if (reader != null) {
+				try {
+					reader.close();
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return data;
+	}
+
+	
+	/**
+	 * Read in the testing data
+	 * @param fileName
+	 * @param attributeMetaData
+	 * @param sequence
+	 * @return
+	 */
+	public static List<Object[]> readTestFile(String fileName, Map<Integer,AttributeMetaData> attributeMetaData, int sequence){
+		BufferedReader reader = null;
+		List<Object[]> data = new ArrayList<Object[]>();
+		try {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName+"_testData_" + sequence)),20000);
+			String line = "";
+			double counter = 0;
+			double counter2 = 0;
+			while ((line = reader.readLine()) != null){
+				if(line != null && line.length() > 0){
+						data.add(Row.readRow(line, attributeMetaData));
+						counter ++;
+				}
+			
 		        if(counter%100000 == 0){
 		        	System.out.println("read " + counter + " lines" + new Date());
 		        }
@@ -123,57 +191,6 @@ public class Row{
 		}
 		return data;
 	}
-/*	public static List<Row> readFile2(String fileName, Map<Integer,AttributeMetaData> attributeMetaData){
-		BufferedReader reader = null;
-		List<Row> data = new ArrayList<Row>();
-		FileInputStream inputStream = null;
-		Scanner sc = null;
-		double counter = 0;
-		try {
-		    inputStream = new FileInputStream(fileName);
-		    sc = new Scanner(inputStream, "UTF-8");
-		    while (sc.hasNextLine()) {
-		        String line = sc.nextLine();
-		        // System.out.println(line);
-		        if(line != null && line.length() > 0){
-					data.add(Row.readRow(line, attributeMetaData));
-					counter ++;
-				}
-		        if(counter%500000 == 0){
-		        	System.out.println("read " + counter + " lines" + new Date());
-		        }
-		    }
-		    // note that Scanner suppresses exceptions
-		    if (sc.ioException() != null) {
-		        throw sc.ioException();
-		    }
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		
-		finally {
-		    if (inputStream != null) {
-		        try {
-					inputStream.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		    }
-		    if (sc != null) {
-		        sc.close();
-		    }
-		}
-		
-		
-		
-		
-		System.out.println("Count in readFile = " + counter );
-		return data;
-	}
-	*/
+
+	
 }
