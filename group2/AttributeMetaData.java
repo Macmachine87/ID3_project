@@ -5,12 +5,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class AttributeMetaData{
 	private int id; //Sequence
 	private String name;
-	private String[] knownValues;  //Don't know if I need this or not... classification values are in the metadata file at this point
+	private Map<String, Integer> knownValues;  
+	private Set<String> knownValueSet = new HashSet<String>();
 	private AttributeType type;
 	private double nonZeroCount = 0;
 	private double sumValue = 0;
@@ -39,14 +42,6 @@ public class AttributeMetaData{
 	public void setType(AttributeType type) {
 		this.type = type;
 	} 
-
-	public String[] getKnownValues() {
-		return knownValues;
-	}
-	public void setKnownValues(String[] knownValues) {
-		this.knownValues = knownValues;
-	}
-
 	public double getSplitPoint() {
 		return splitPoint;
 	}
@@ -74,7 +69,7 @@ public class AttributeMetaData{
 	public String toString(){
 		String string = "META:" + getName() + " " + getId() + " " + getType();
 		if(type.equals(AttributeType.continuous)){
-			string += " total " + sumValue + " nonZeroCount " + nonZeroCount + " split " + splitPoint;
+			string += " total " + sumValue + " nonZeroCount " + nonZeroCount + " split " + splitPoint + " max " + maxValue +  " min " + minValue;
 		}
 		if(isInUse()){
 			string += " in use ";
@@ -82,6 +77,7 @@ public class AttributeMetaData{
 		else{
 			string += " not in use ";
 		}
+                System.out.println(string);
 		return string;
 	}
 	public static Map<Integer, AttributeMetaData> readMetaDataFile(String fileName){
@@ -113,7 +109,7 @@ public class AttributeMetaData{
 			classification.setId(lineNumber);
 			classification.setName("Classification");
 			classification.setType(AttributeType.classification);
-			classification.setKnownValues(classifications.split(","));
+//			classification.setKnownValues(classifications.split(","));
 			data.put(lineNumber, classification);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -151,6 +147,18 @@ public class AttributeMetaData{
 	}
 	public void setBuckets(double[] buckets) {
 		this.buckets = buckets;
+	}
+	public Set getKnownValueSet() {
+		return knownValueSet;
+	}
+	public void setKnownValueSet(Set knownValueSet) {
+		this.knownValueSet = knownValueSet;
+	}
+	public Map<String, Integer> getKnownValues() {
+		return knownValues;
+	}
+	public void setKnownValues(Map<String, Integer> knownValues) {
+		this.knownValues = knownValues;
 	}
 
 }

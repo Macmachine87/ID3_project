@@ -1,5 +1,7 @@
 package group2;
 
+
+
 import group2.AttributeMetaData.AttributeType;
 
 import java.io.BufferedReader;
@@ -34,10 +36,15 @@ public class Row{
 		this.arrayAttributes = arrayAttributes;
 	}	
 	
-	public static Object[] readRow(String row,  Map<Integer,AttributeMetaData> attributeMetaData){
+	public static Object[] readRow(String row,  Map<Integer,AttributeMetaData> attributeMetaData, boolean addScore){
 		Row newRow = new Row();
 		String[] data = row.split(",");
-		Object[] attributes = new Object[attributeMetaData.size()];
+		Object[] attributes = null;
+		if(addScore){
+			attributes = new Object[attributeMetaData.size()+1];
+		}
+		else 
+			attributes = new Object[attributeMetaData.size()];
 		/*
 		 * Going to need a process to fetch the columns we are interested in each time. 
 		 */
@@ -51,6 +58,11 @@ public class Row{
 					newRow.getAttributes().put(i, attribute);
 					attributes[i]= attribute;*/
 					attributes[i]= data[i];
+					
+					if(metaData.getKnownValues() == null){
+						//Training Data
+						metaData.getKnownValueSet().add((String)data[i]);
+					}
 				}
 				if(metaData.getType().equals(AttributeType.classification)){
 					/*Classification attribute = new Classification();
@@ -106,6 +118,12 @@ public class Row{
 			while ((line = reader.readLine()) != null){
 				if(line != null && line.length() > 0){
 					int rand = DataModel.randInt(1, 3);
+					
+					/*
+					 * This is vulnerable to missing out on some min and max values, but that will happen
+					 * in real world running as well
+					 */
+					
 					if(rand == 3){
 						counter2++;
 						//write to file, not going to use
@@ -113,7 +131,7 @@ public class Row{
 						writer.newLine();
 					}
 					else{
-						data.add(Row.readRow(line, attributeMetaData));
+						data.add(Row.readRow(line, attributeMetaData,false));
 						counter ++;
 					}
 				}
@@ -164,7 +182,7 @@ public class Row{
 			double counter2 = 0;
 			while ((line = reader.readLine()) != null){
 				if(line != null && line.length() > 0){
-						data.add(Row.readRow(line, attributeMetaData));
+						data.add(Row.readRow(line, attributeMetaData,true));
 						counter ++;
 				}
 			

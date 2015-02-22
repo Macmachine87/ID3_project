@@ -2,12 +2,13 @@ package group2;
 
 import group2.AttributeMetaData.AttributeType;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 /**
  * Store the data model
  * this includes a separate object for the attribute meta data and a list of the rows of data
@@ -33,6 +34,17 @@ public class DataModel {
 			Map<Integer, AttributeMetaData> attributeMetaData) {
 		this.attributeMetaData = attributeMetaData;
 	}
+	public Map<Integer, AttributeMetaData> getInUseAttributeMetaData(){
+		Iterator<Integer> i = attributeMetaData.keySet().iterator();
+		Map<Integer,AttributeMetaData> inUse = new HashMap<Integer,AttributeMetaData>();
+		while(i.hasNext()){
+			AttributeMetaData metaData = attributeMetaData.get(i.next());
+			if(metaData.isInUse()){
+				inUse.put(metaData.getId(), metaData);
+			}
+		}
+		return inUse;
+	}
 	public void chooseColumns(){
 		int size = attributeMetaData.size()-1;  //Last column is the classification
 		attributeMetaData.get(size).setInUse(true); //Always use the classification
@@ -55,49 +67,81 @@ public class DataModel {
 	 * Generate the buckets for the continuous columns we are using
 	 */
 	public void generateBuckets(){
-		List<Integer> continuousCols = getContinuousKeys();
-		Iterator<Integer> j = continuousCols.iterator();
+		Iterator<Integer> j = attributeMetaData.keySet().iterator();
 		int bucketCount = 10;
 		while(j.hasNext()){
 			int pos = j.next();
 			AttributeMetaData metaData = attributeMetaData.get(pos);
 			if(metaData.isInUse()){
-				double max = metaData.getMaxValue();
-				double min = metaData.getMinValue();
-				double span = max-min;
-				double interval = span/bucketCount;
-				double[] buckets = new double[bucketCount];
-				buckets[0] = min+interval;
-				for (int i = 1; i < bucketCount -1; i++){
-					buckets[i] = buckets[i-1]+interval;
+				if(metaData.getType().equals(AttributeType.continuous)){
+					double max = metaData.getMaxValue();
+					double min = metaData.getMinValue();
+					double span = max-min;
+					double interval = span/bucketCount;
+					double[] buckets = new double[bucketCount];
+					buckets[0] = min+interval;
+					for (int i = 1; i < bucketCount -1; i++){
+						buckets[i] = buckets[i-1]+interval;
+					}
+					buckets[bucketCount-1] = max;
+					metaData.setBuckets(buckets);
 				}
-				buckets[bucketCount-1] = max;
-				metaData.setBuckets(buckets);
+				else if(metaData.getType().equals(AttributeType.categorical)){
+					Set<String> knownValueSet = metaData.getKnownValueSet();
+					Map<String,Integer> knownValues = new HashMap<String,Integer>();
+					Iterator<String> i = knownValueSet.iterator();
+					int k = 0;
+					while(i.hasNext()){
+						String value = i.next();
+						knownValues.put(value, k++);
+					}
+					knownValues.put("unknown", k);
+					metaData.setKnownValues(knownValues);
+				}
 			}
 		}
 		
 	}
-	
-	public void bucketData(){
-		List<Integer> continuousCols = getContinuousKeys();
-		Iterator<Object[]> rowIterator = oRows.iterator();
+	/**
+	 * Place each continuous value into a predetermined bucket.
+	 */
+	public void bucketData(List<Object[]> data){
+		Iterator<Object[]> rowIterator = data.iterator();
 		while(rowIterator.hasNext()){
 			Object[] row = rowIterator.next();
-			Iterator<Integer> j = continuousCols.iterator();
+			Iterator<Integer> j = attributeMetaData.keySet().iterator();
 			while(j.hasNext()){
 				int pos = j.next();
 				AttributeMetaData metaData = attributeMetaData.get(pos);
 				if(metaData.isInUse()){
-					double[] buckets = metaData.getBuckets();
-					double value = (Double)row[pos];
-					boolean setBucket = false;
-					int i = 0;
-					while (!setBucket){
-						if(value <= buckets[i]){
-							row[pos] = Integer.toString(i);
-							setBucket=true;
+					if(metaData.getType().equals(AttributeType.continuous)){
+						double[] buckets = metaData.getBuckets();
+						double value = (Double)row[pos];
+						boolean setBucket = false;
+						int i = 0;
+						while (!setBucket && i < buckets.length){
+							if(value <= buckets[i]){
+								row[pos] = i;
+								setBucket=true;
+							}
+							i++;
 						}
-						i++;
+						if(!setBucket){
+							//In the event we see a value that is larger than the previously determined max, put it in the max bucket
+							//Would probably want to log this event 
+							row[pos] = i-1;
+						}
+					}
+					else if(metaData.getType().equals(AttributeType.categorical)){
+						String value = (String) row[pos];
+						int cat;
+						if(metaData.getKnownValues().containsKey(value)){
+							cat = metaData.getKnownValues().get(value);
+						}
+						else {
+							cat = metaData.getKnownValues().get("unknown");
+						}
+						row[pos] = cat;
 					}
 				}	
 			}
