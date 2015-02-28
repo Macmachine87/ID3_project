@@ -5,15 +5,22 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
+/**
+ * This represents a node in the tree. 
+ * A node will contain tree references to parents and two children.
+ * As well as data parsing information like the split point and the attribute that will be split on.
+ * Also if this node represents a leaf it will have the classification of that leaf.
+ * @author Scott
+ *
+ */
 public class Node implements java.io.Serializable {
 	private Node parent;
 	private Node left;
 	private Node right;
 	private double entropy;
-	private String classification; // If this is a leaf node then it will list
-									// its classification
+	private String classification; // If this is a leaf node then it will list  its classification
 
+	//Rules equals is the only one currently in use
 	public enum RuleType {
 		equals, greaterE, lessE
 	};
@@ -38,11 +45,6 @@ public class Node implements java.io.Serializable {
 			string += " right " + right.toString();
 		}
 		return string;
-	}
-
-	public Node() {
-		setEntropy(0.0);
-		setParent(null);
 	}
 
 	public int getSplitPoint() {
@@ -112,6 +114,11 @@ public class Node implements java.io.Serializable {
 	public static final String rightSplit = "right";
 	public static final String leftSplit = "left";
 
+	/**
+	 * Splits the data according to the rules that the node holds
+	 * @param data
+	 * @return a map of two keys left and right containing the split data
+	 */
 	public Map<String, List<int[]>> splitData(List<int[]> data) {
 		Map<String, List<int[]>> splitData = new HashMap<String, List<int[]>>();
 		List<int[]> left = new ArrayList<int[]>();
@@ -131,8 +138,11 @@ public class Node implements java.io.Serializable {
 		return splitData;
 	}
 	
-	
-
+	/**
+	 * Determine the split for a value
+	 * @param row
+	 * @return right or left
+	 */
 	public String splitValue(int[] row) {
 		int value = (Integer) row[this.getAttribute()];
 		if (ruleType.equals(RuleType.equals)) {

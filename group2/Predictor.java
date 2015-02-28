@@ -7,7 +7,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * This will take a file of data and provide classification for each row.
+ * @author Scott
+ *
+ */
 public class Predictor {
 
 	public static void main(String[] args) {
@@ -48,9 +52,6 @@ public class Predictor {
 					e.printStackTrace();
 				}
 			}
-		}
-
-		
+		}	
 	}
-	
 }

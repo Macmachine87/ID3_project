@@ -11,7 +11,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
+/**
+ * Container to represent the forest of trees
+ * 
+ * @author Scott
+ *
+ */
 public class Forest  implements java.io.Serializable{
 
 	private List<Node> trees = new ArrayList<Node>();
@@ -36,7 +41,7 @@ public class Forest  implements java.io.Serializable{
 		Map<String, Integer> scores = new HashMap<String, Integer>();
 		while(nodes.hasNext()){
 			Node tree = nodes.next();
-			String score = Tree.testRow(tree, data);
+			String score = TreeUtilities.testRow(tree, data);
 			if(!scores.containsKey(score)){
 				scores.put(score, 1);
 			}

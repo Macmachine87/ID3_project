@@ -14,45 +14,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a row of data from the source file
+ * Functions used to read in data from the source file for analysis.
  * 
  * @author Scott
  * 
  */
-public class Row {
-	/*
-	 * private Map<Integer, Attribute> attributes = new
-	 * HashMap<Integer,Attribute>(); public Map<Integer, Attribute>
-	 * getAttributes() { return attributes; }
-	 */
-	private Object[] arrayAttributes;
-
-	public static enum ReadType {
-		allRows, trainingRows, testingRows
-	};
-
-	public Object[] getArrayAttributes() {
-		return arrayAttributes;
-	}
-
-	public void setArrayAttributes(Object[] arrayAttributes) {
-		this.arrayAttributes = arrayAttributes;
-	}
-
-	public static int[] readRow(String row, Attributes attributeMetaData) {
-		String[] data = row.split(",");
-		int[] attributes = new int[attributeMetaData.getAttributeMetaData().size() + 1];
-		/*
-		 * Going to need a process to fetch the columns we are interested in
-		 * each time.
-		 */
-			attributes = attributeMetaData.bucketRow(data);
-		// newRow.setArrayAttributes(attributes);
-		return attributes;
-	}
+public class RowUtilities {
 
 	/*
 	 * This will collect all the data required to build the data bins
+	 * Read every row and analyze the data, this finds min and max as well as unique categorical values.
 	 */
 	public static Object[] readRowForBinning(String row, Attributes attributeMetaData) {
 		String[] data = row.split(",");
@@ -104,15 +75,11 @@ public class Row {
 			double counter = 0;
 			while ((line = reader.readLine()) != null) {
 				if (line != null && line.length() > 0) {
-					data.add(Row.readRowForBinning(line, attributes));
+					data.add(RowUtilities.readRowForBinning(line, attributes));
 					counter++;
 				}
-				/*if (counter % 100000 == 0) {
-					 System.out.println("read binning run " + counter + " lines" + new Date());
-				}*/
 			}
 			System.out.println("Count in binning file = " + counter );
-			// + " counter2 = " + counter2);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -153,24 +120,22 @@ public class Row {
 			while ((line = reader.readLine()) != null) {
 				int[] row = null;
 				if (line != null && line.length() > 0) {
-					int rand = DataModel.randInt(1, 3);
+					int rand = Attributes.randInt(1, 3);
 					if (rand == 3) {
 						// write to file, not going to use until testing
 						writer.write(line);
 						writer.newLine();
 					} else {
-						row = Row.readRow(line, attributes);
+						row = attributes.bucketRow(line.split(","));
 						data.add(row);
 						counter++;
 					}
 				} else {
 				}
 				if (counter % 100000 == 0) {
-//					 System.out.println("read training data " + counter + " lines"  + new Date());
+					 System.out.println("read training data " + counter + " lines"  + new Date());
 				}
 			}
-			// System.out.println("Count in readFile = " + counter
-			// + " counter2 = " + counter2);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -204,19 +169,11 @@ public class Row {
 		try {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName + "_testData_" + sequence)), 20000);
 			String line = "";
-			double counter = 0;
-			double counter2 = 0;
 			while ((line = reader.readLine()) != null) {
 				if (line != null && line.length() > 0) {
-					data.add(Row.readRow(line, attributeMetaData));
-					counter++;
+					data.add( attributeMetaData.bucketRow(line.split(",")));
 				}
-				/*if (counter % 100000 == 0) {
-					System.out.println("read test file " + sequence + " " + counter + " lines" + new Date());
-				}*/
 			}
-			// System.out.println("Count in readFile = " + counter
-			// + " counter2 = " + counter2);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

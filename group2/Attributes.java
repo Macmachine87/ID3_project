@@ -9,8 +9,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
-
+/**
+ * Container that handles the attributes
+ * @author Scott
+ *
+ */
 public class Attributes  implements java.io.Serializable{
 	private Map<Integer, AttributeMetaData> attributeMetaData;
 	private int classificationKey = -1;
@@ -66,10 +71,7 @@ public class Attributes  implements java.io.Serializable{
 			classification.setId(lineNumber);
 			classification.setName("Classification");
 			classification.setType(AttributeType.classification);
-/*			for(String classificationValue :classifications.split(",")){
-				classification.getKnownValueMap().put((String)classificationValue,1);	
-			}
-*/			data.put(lineNumber, classification);
+			data.put(lineNumber, classification);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -88,25 +90,12 @@ public class Attributes  implements java.io.Serializable{
 		return data;
 	}
 
-	public List<Integer> getContinuousKeys() {
-		// Get a list containing the index of all of the continuous attributes
-		List<Integer> continuousCols = new ArrayList<Integer>();
-		Iterator<Integer> metaDataKeys = attributeMetaData.keySet().iterator();
-		while (metaDataKeys.hasNext()) {
-			Integer k = metaDataKeys.next();
-			AttributeMetaData metaData = attributeMetaData.get(k);
-			if (metaData.getType().equals(AttributeType.continuous))
-				continuousCols.add(k);
-		}
-		return continuousCols;
-	}
-
 	/*
 	 * Generate the buckets for the continuous columns we are using
 	 */
 	public void generateBuckets(String trainingFile) {
 		//This call will populate the attributeMetaData object with unique values and the min max values for all data.
-		List<Object[]> data = Row.readFileForBinning(trainingFile, this);
+		List<Object[]> data = RowUtilities.readFileForBinning(trainingFile, this);
 		Iterator<Integer> j = attributeMetaData.keySet().iterator();
 		int bucketCount = 10;
 		while (j.hasNext()) {
@@ -185,14 +174,13 @@ public class Attributes  implements java.io.Serializable{
 		int chosenCount = 0;
 		List<Integer> used = new ArrayList<Integer>();
 		while (chosenCount < numCols) {
-			int rand = DataModel.randInt(0, size);
+			int rand = Attributes.randInt(0, size);
 			if (!attributeMetaData.get(rand).isInUse()) {
 				chosenCount++;
 				attributeMetaData.get(rand).setInUse(true);
 				used.add(rand);
 			}
 		}
-		String t = ":";
 	}
 	public int[] bucketRow(Object[] row) {
 		int[] newRow = new int[row.length+1];
@@ -244,6 +232,28 @@ public class Attributes  implements java.io.Serializable{
 			}
 		}
 		return newRow;
+	}
+
+	public Map<Integer, AttributeMetaData> getInUseAttributeMetaData() {
+		Iterator<Integer> i = this.getAttributeMetaData().keySet().iterator();
+		Map<Integer, AttributeMetaData> inUse = new HashMap<Integer, AttributeMetaData>();
+		while (i.hasNext()) {
+			AttributeMetaData metaData = this.getAttributeMetaData().get(i.next());
+			if (metaData.isInUse()) {
+				inUse.put(metaData.getId(), metaData);
+			}
+		}
+		return inUse;
+	}
+
+	public static int randInt(int min, int max) {
+		// NOTE: Usually this should be a field rather than a method
+		// variable so that it is not re-seeded every call.
+		final Random rand = new Random();
+		// nextInt is normally exclusive of the top value,
+		// so add 1 to make it inclusive
+		final int randomNum = rand.nextInt((max - min) + 1) + min;
+		return randomNum;
 	}
 
 

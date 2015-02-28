@@ -2,7 +2,11 @@ package group2;
 
 import java.util.HashMap;
 import java.util.Map;
-
+/**
+ * Data describing a column in the dataset
+ * @author Scott
+ *
+ */
 public class AttributeMetaData  implements java.io.Serializable {
 	private int id; // Sequence
 	private String name;

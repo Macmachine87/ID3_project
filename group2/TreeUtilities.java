@@ -7,19 +7,32 @@ package group2;
 
 import group2.Node.RuleType;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
- *
+ * Functions used in the building of the trees
  * @author sf250d
  */
-public class Tree {
+public class TreeUtilities {
 	
-	public Node buildTree(Node root, List<int[]> data,	Map<Integer, AttributeMetaData> attrMD) {
+	/**
+	 * Primary tree building routine
+	 * @param root
+	 * @param data
+	 * @param attrMD
+	 * @return
+	 */
+	public static Node buildTree(Node root, List<int[]> data,	Map<Integer, AttributeMetaData> attrMD) {
 		Map<Integer, Map<Integer, Integer>> mapAl = new HashMap<>();
 		// dataIdx are the attributes that are in use
 		ArrayList<Integer> dataIdx = new ArrayList<>();
@@ -47,7 +60,6 @@ public class Tree {
 		}
 		AttributeMetaData bestAttr = null;
 		double bestGain = 0.00;
-		int bestBinCt = 0;
 		root.setEntropy(Entropy.calculateWholeDSEntropy(data));
 		if (root.getEntropy() == 0) {
 			if (data == null || data.isEmpty()) {
@@ -62,7 +74,7 @@ public class Tree {
 		while (attributes.hasNext()) {
 			AttributeMetaData attribute = attrMD.get(attributes.next());
 			if (!attribute.getType().equals(AttributeType.classification)) {
-				Map<Integer, Map<Integer, Integer>> map = DataUtilities.formClassCounts(data, attribute);
+				Map<Integer, Map<Integer, Integer>> map = TreeUtilities.formClassCounts(data, attribute);
 				double gain = InformationGain.calculateInfoGain(
 						root.getEntropy(), map);
 				if (gain >= bestGain) {
@@ -137,9 +149,9 @@ public class Tree {
 					|| splitData.get(Node.leftSplit).size() == 0) {
 				root.setClassification( classificationAttribute.getReverseValues().get(findMajorityClass(data, classificationAttribute)));
 			} else {
-				root.setRight(this.buildTree(right,
+				root.setRight(TreeUtilities.buildTree(right,
 						splitData.get(Node.rightSplit), nextAttrs));
-				root.setLeft(this.buildTree(left,
+				root.setLeft(TreeUtilities.buildTree(left,
 						splitData.get(Node.leftSplit), nextAttrs));
 			}
 		} else {
@@ -150,8 +162,7 @@ public class Tree {
 	}
 
 
-
-	public int findMajorityClass(List<int[]> data,
+	public static  int findMajorityClass(List<int[]> data,
 			AttributeMetaData classificationAttribute) {
 		Iterator<int[]> rows = data.iterator();
 		Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
@@ -177,18 +188,30 @@ public class Tree {
 		return max;
 	}
 	
-	
+	/**
+	 * Testing routine to run through a complete data set and set the result to the last column.
+	 * @param tree
+	 * @param data
+	 * @param attributes
+	 * @return
+	 */
 	public static  List<int[]> testData(Node tree, List<int[]> data, Attributes attributes) {
 		Iterator<int[]> rows = data.iterator();
 		AttributeMetaData classification = attributes.getClassificationAttribute();
 		while (rows.hasNext()) {
 			int[] row = rows.next();
 			row[row.length - 1] = classification.getKnownValues().get(testRow(tree, row));
-			String x = ";";
 		}
 		return data;
 	}
 	
+	/**
+	 * The scoring routine.
+	 * Pass in a set of data and a tree and this will return the classification.
+	 * @param node
+	 * @param row
+	 * @return
+	 */
 	public static String testRow(Node node, int[] row) {
 		if (node.getClassification() != null)
 			return node.getClassification();
@@ -203,10 +226,10 @@ public class Tree {
 	/**
 	 * Calculate the confusion matrix 
 	 * Loops over all of the data and creates a map of the accuracy of the calculations.
-	 * @param irisMap
+	 * @param 
 	 * @return
 	 */
-	public Map<String,Map<String,Integer>> calculateConfusion(List<int[]> data, Attributes attributes){
+	public static Map<String,Map<String,Integer>> calculateConfusion(List<int[]> data, Attributes attributes){
 		/*
 		 * matrix of how many accurate hits we made in the predictions.
 		 */
@@ -230,5 +253,121 @@ public class Tree {
 		}
 		return confusion;
 	}
-	
+
+	public static List<Integer> getUnique(List<Integer> data) {
+		Set<Integer> set = new HashSet<>(data);
+		List<Integer> classArr = new ArrayList<Integer>();
+		for (Integer s : set) {
+			classArr.add(s);
+		}
+		return classArr;
+	}
+
+	public static int getFreqOfIntInData(ArrayList<Integer> data,int searchStr) {
+		int i = Collections.frequency(data, searchStr);
+		return i;
+	}
+
+	/*
+	 * for a given attribute return data is a map indexed by bin (0-9 for
+	 * continuous variables, discrete values for the categorical attributes) The
+	 * value of the map is each of the classifications and the count of those
+	 * classifications for this data set and attribute.
+	 */
+	public static Map<Integer, Map<Integer, Integer>> formClassCounts(List<int[]> data, AttributeMetaData attribute) {
+		if (data.isEmpty()) {
+			System.out.println("no data");
+		}
+		List<Integer> classData = new ArrayList<Integer>();
+		List<Integer> attrBinData = new ArrayList<Integer>();
+		Map<Integer, Map<Integer, Integer>> classMapsPerBin = new HashMap<Integer, Map<Integer, Integer>>();
+		for (int[] o : data) {
+			classData.add( o[o.length - 1]);
+			attrBinData.add((Integer) o[attribute.getId()]);
+		}
+		// gets uniqueClass
+		List<Integer> uniqueClass = TreeUtilities.getUnique(classData);
+		// gets uniqueAttrBinVals
+		List<Integer> uniqueAttrBin = TreeUtilities.getUnique(attrBinData);
+		// for each unique attrBin setup a map of maps where the key is the val
+		// of the bin and the inner map has a key of the classification and a
+		// count for each
+		for (Integer bin : uniqueAttrBin) {
+			Map<Integer, Integer> classMap = new HashMap<>();
+			for (Integer classification : uniqueClass) {
+				classMap.put(classification, 0);
+			}
+			classMapsPerBin.put(bin, classMap);
+		}
+		for (int i = 0; i < attrBinData.size(); i++) {
+			// get inner map of classMapsPerBin
+			Map<Integer, Integer> classMap = classMapsPerBin.get(attrBinData.get(i));
+			// get value (count) of that inner map for the specified
+			// classification
+			int val = classMap.get(classData.get(i));
+			// increase inner map value by 1 for the specified classification
+			// and set it to the classmaps per bin
+			classMapsPerBin.get(attrBinData.get(i)).put(classData.get(i),val + 1);
+		}
+		return classMapsPerBin;
+	}
+
+	public static void outputConfusion(Map<String,Map<String,Integer>> confusion, String path, double accuracy){
+		try {
+			FileWriter writer = new FileWriter(path);
+			/*
+			 * pull the keys from confusion, sort them into a list
+			 * use this sorted list to control the display data into 
+			 */
+			TreeSet<String> keys = new TreeSet<String>();
+			keys.addAll(confusion.keySet());
+			
+			//Print out the first row, first column will be the actual values, remaining columns will be the calculated headers 
+			writer.append("Actual Value,");
+			Iterator<String> keyIterator = keys.iterator();
+			while(keyIterator.hasNext()){
+				writer.append(keyIterator.next());
+				writer.append(",");
+			}
+			writer.append("Accuracy");
+			writer.append("\n");
+			//Write out the data rows
+			keyIterator = keys.iterator();
+			while(keyIterator.hasNext()){
+				String key = keyIterator.next();
+				Map<String,Integer> hits = confusion.get(key);
+				if(hits != null && hits.containsKey(key)){
+					writer.append(key);
+					float hitCount = hits.get(key);
+					float missCount = 0;
+					Iterator<String> hitIterator = keys.iterator();
+					while(hitIterator.hasNext()){
+						String hitKey = hitIterator.next();
+						if(!hitKey.equals(key) && hits.containsKey(hitKey)){
+							missCount += hits.get(hitKey);
+						}
+						writer.append(",");
+						if(hits.containsKey(hitKey)){
+							writer.append(hits.get(hitKey).toString());
+						}
+						else{
+							writer.append("0");
+						}
+					}
+					writer.append(",");
+					writer.append("" + (1.0f-missCount/hitCount));
+					writer.append("\n");
+				}
+			}
+			writer.append("\n");
+			writer.append("Accuracy = " + accuracy);
+		    writer.flush();
+		    writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
 }

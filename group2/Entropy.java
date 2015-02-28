@@ -23,11 +23,11 @@ public class Entropy {
 		for (int[] o : data) {
 			classData.add( o[o.length - 2]);
 		}
-		List<Integer> uniqueClass = DataUtilities.getUnique(classData);
+		List<Integer> uniqueClass = TreeUtilities.getUnique(classData);
 		int numOfClass = uniqueClass.size();
 		int classCnt;
 		for (int i = 0; i < numOfClass; i++) {
-			classCnt = DataUtilities.getFreqOfIntInData(classData,	uniqueClass.get(i));
+			classCnt = TreeUtilities.getFreqOfIntInData(classData,	uniqueClass.get(i));
 			double prob = ((double) classCnt) / (double) classData.size();
 			ent += -prob * (Math.log(prob) / Math.log(2));
 			// ERASE AFTER PROGRAM WORKS System.out.println("class count:" +
