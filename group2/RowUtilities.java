@@ -130,10 +130,6 @@ public class RowUtilities {
 						data.add(row);
 						counter++;
 					}
-				} else {
-				}
-				if (counter % 100000 == 0) {
-					 System.out.println("read training data " + counter + " lines"  + new Date());
 				}
 			}
 		} catch (FileNotFoundException e) {
