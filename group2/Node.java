@@ -6,46 +6,46 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class Node implements java.io.Serializable{
-    private Node parent;
-    private Node left;
-    private Node right;
-    private double entropy;
+public class Node implements java.io.Serializable {
+	private Node parent;
+	private Node left;
+	private Node right;
+	private double entropy;
+	private String classification; // If this is a leaf node then it will list
+									// its classification
 
-    private String classification; //If this is a leaf node then it will list its classification
-    
-    public enum RuleType{equals, greaterE, lessE};
-    private RuleType ruleType;
-    private int splitPoint;
-    private int attribute;
+	public enum RuleType {
+		equals, greaterE, lessE
+	};
 
+	private RuleType ruleType;
+	private int splitPoint;
+	private int attribute;
 
-	public String toString(){
+	public String toString() {
 		String string = "\nAttribute " + attribute;
-		if(classification != null){
+		if (classification != null) {
 			string += " classification " + classification;
 		}
-		if(ruleType != null){
+		if (ruleType != null) {
 			string += " RuleType = " + ruleType.toString();
 			string += " splitPoint = " + splitPoint;
-			
 		}
-		if(left != null){
+		if (left != null) {
 			string += " Left = " + left.toString();
 		}
-		if(right != null){
-			string += " rigth " + right.toString();
+		if (right != null) {
+			string += " right " + right.toString();
 		}
 		return string;
 	}
-    
-    
-    public Node() {
-        setEntropy(0.0);
-        setParent(null);
-    }
 
-    public int getSplitPoint() {
+	public Node() {
+		setEntropy(0.0);
+		setParent(null);
+	}
+
+	public int getSplitPoint() {
 		return splitPoint;
 	}
 
@@ -54,21 +54,22 @@ public class Node implements java.io.Serializable{
 	}
 
 	public void setParent(Node parent) {
-        this.parent = parent;
-    }
+		this.parent = parent;
+	}
 
-    public Node getParent() {
-        return parent;
-    }
-    public void setEntropy(double entropy) {
-        this.entropy = entropy;
-    }
+	public Node getParent() {
+		return parent;
+	}
 
-    public double getEntropy() {
-        return entropy;
-    }
+	public void setEntropy(double entropy) {
+		this.entropy = entropy;
+	}
 
-    public Node getLeft() {
+	public double getEntropy() {
+		return entropy;
+	}
+
+	public Node getLeft() {
 		return left;
 	}
 
@@ -100,7 +101,6 @@ public class Node implements java.io.Serializable{
 		this.ruleType = ruleType;
 	}
 
-
 	public int getAttribute() {
 		return attribute;
 	}
@@ -108,61 +108,44 @@ public class Node implements java.io.Serializable{
 	public void setAttribute(int attribute) {
 		this.attribute = attribute;
 	}
+
 	public static final String rightSplit = "right";
 	public static final String leftSplit = "left";
-	public Map<String, List<Object[]>> splitData(List<Object[]> data){
-		Map<String,List<Object[]>> splitData = new HashMap<String,List<Object[]>>();
-		List<Object[]> left = new ArrayList<Object[]>();
-		List<Object[]> right = new ArrayList<Object[]>();
+
+	public Map<String, List<int[]>> splitData(List<int[]> data) {
+		Map<String, List<int[]>> splitData = new HashMap<String, List<int[]>>();
+		List<int[]> left = new ArrayList<int[]>();
+		List<int[]> right = new ArrayList<int[]>();
 		splitData.put(Node.rightSplit, right);
 		splitData.put(Node.leftSplit, left);
-		
-		Iterator<Object[]> dataIterator = data.iterator();
-		while(dataIterator.hasNext()){
-			Object[] row = dataIterator.next();
+		Iterator<int[]> dataIterator = data.iterator();
+		while (dataIterator.hasNext()) {
+			int[] row = dataIterator.next();
 			String split = this.splitValue(row);
-			if(split.equals(leftSplit)){
+			if (split.equals(leftSplit)) {
 				left.add(row);
-			}
-			else{
+			} else {
 				right.add(row);
 			}
 		}
 		return splitData;
 	}
-	public String splitValue(Object[] row){
-		int value = (Integer)row[this.getAttribute()];
-		if(ruleType.equals(RuleType.equals)){
-			if(value == splitPoint){
+	
+	
+
+	public String splitValue(int[] row) {
+		int value = (Integer) row[this.getAttribute()];
+		if (ruleType.equals(RuleType.equals)) {
+			if (value == splitPoint) {
 				return leftSplit;
-			}
-			else{
+			} else {
 				return rightSplit;
 			}
-		}
-		else if (ruleType.equals(RuleType.lessE)){
-			
-		}
-		else if( ruleType.equals(RuleType.greaterE)){
-			
+		} 
+		else if (ruleType.equals(RuleType.lessE)) {
+		} 
+		else if (ruleType.equals(RuleType.greaterE)) {
 		}
 		return leftSplit;
 	}
-	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
